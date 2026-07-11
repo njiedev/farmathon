@@ -1,0 +1,12 @@
+{
+  "name": "farm-agent",
+  "private": true,
+  "workspaces": [
+    "agent"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces"
+  }
+}
+
