@@ -2,11 +2,16 @@
   "name": "farm-agent",
   "private": true,
   "workspaces": [
-    "agent"
+    "agent",
+    "web"
   ],
   "scripts": {
     "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces"
-  }
+    "test": "npm run test --workspace @farm-agent/agent",
+    "dev:model": ".venv/bin/uvicorn serve.app:app --app-dir model --host 127.0.0.1 --port 8001",
+    "dev:agent": "npm run build --workspace @farm-agent/agent && npm run start --workspace @farm-agent/agent",
+    "dev:web": "npm run dev --workspace @farm-agent/web",
+    "demo": "concurrently -k -n model,agent,web -c yellow,green,cyan \"npm:dev:model\" \"npm:dev:agent\" \"npm:dev:web\""
+  },
+  "devDependencies": { "concurrently": "^9.2.1" }
 }
-

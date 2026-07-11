@@ -123,6 +123,19 @@ The next increment is a minimal FastAPI inference service, followed by the
 TypeScript diagnosis tool. Do not claim these controlled PlantVillage metrics as
 field-photo performance.
 
+The accelerated `main` branch now contains the complete demo. FastAPI serves the
+committed checkpoint with uncertainty detection; the TypeScript API has weather,
+crop, diagnosis, session-memory, profile, Anthropic, and no-key demo paths; and
+the Next.js PWA implements the field desk, image upload, structured results,
+voice input, persistence, proactive alerts, responsive CSS, and offline shell.
+Run all services with `npm run demo` and open `http://localhost:3000`.
+
+Live Next.js proxy checks succeeded for Open-Meteo and a held-out common-rust
+image. The in-app browser was unavailable, so visual screenshot QA remains a
+manual follow-up. `npm audit` has two moderate Next/PostCSS findings and no high
+or critical findings. The separate `tutoring` branch remains frozen at commit
+`9360f38` for the slower architectural walkthrough.
+
 ## Verification and repository
 
 - `npm run build` passes.

@@ -1,0 +1,1 @@
+"""FarmAgent model inference service."""

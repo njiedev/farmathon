@@ -20,35 +20,39 @@ space have set.
 
 ## Current milestone
 
-Complete: train and evaluate the first real classifier. The leakage-safe manifest
-contains 2,703 train, 569 validation, and 580 test images with no leaf IDs crossing
-partitions. `model/train.py` fine-tunes ImageNet-pretrained MobileNetV3 Small with
-class-weighted loss, train-only augmentation, per-epoch validation, and automatic
-lowest-validation-loss checkpointing. The seed-42 eight-epoch MPS run selected
-epoch 6 and achieved 98.28% test accuracy and 97.68% macro F1. `model/eval.py`
-independently reproduced the same loss, metrics, and confusion matrix from the
-saved checkpoint. Eight Python tests and eight agent tests pass. Metrics are
-PlantVillage-only and must not be presented as field-photo performance. Next:
-build a small FastAPI inference service around the saved artifact, then expose it
-as `diagnose_crop_image`; neither serving layer is implemented yet.
+Complete demo: the trained MobileNetV3 checkpoint is served through FastAPI with
+confidence-aware responses, retake guidance, health checks, and upload validation.
+The TypeScript service exposes crop lookup, live Open-Meteo forecasts and alerts,
+the classifier as `diagnose_crop_image`, bounded Anthropic orchestration when a
+key is configured, and deterministic no-key demo behavior with session memory and
+farm-profile context. The Next.js field desk provides chat, structured weather
+and diagnosis results, profile/history persistence, leaf upload, browser voice
+input, proactive risk alerts, responsive layouts, an installable manifest, and
+service-worker shell caching. The generated field photograph and 6.1 MB trained
+checkpoint are committed so the demo is portable.
 
-The bounded Anthropic tool-use loop and JSON-backed corn lookup remain complete.
-`npm run build` and `npm test` pass with eight behavioral tests using a fake
-client, not a live API key. The weather tool is not implemented yet.
+`npm run build`, eight TypeScript tests, and ten Python tests pass. Live integration
+was verified through the Next.js proxy with Open-Meteo and a held-out common-rust
+image. The in-app browser was unavailable, so screenshot-based desktop/mobile QA
+was not completed in this session. `npm audit` reports two moderate findings from
+Next.js' nested PostCSS 8.4.31 dependency; there are no high or critical findings,
+and npm's proposed fix is an invalid downgrade to Next 9. Metrics remain
+PlantVillage-only and must not be presented as field-photo performance.
 
 Update this section as work progresses — keep it accurate, it's the fastest way
 for a new session to know where things stand.
 
-- [ ] Scaffold repo structure
-- [ ] Agent core with tool-use loop (weather tool, crop/soil lookup tool)
-- [ ] Pest/disease image classifier (PlantVillage or similar), trained + evaluated
-- [ ] Classifier output includes a concrete recommendation (confidence + suggested
+- [x] Scaffold repo structure
+- [x] Agent core with tool-use loop (weather tool, crop/soil lookup tool)
+- [x] Pest/disease image classifier (PlantVillage or similar), trained + evaluated
+- [x] Classifier output includes a concrete recommendation (confidence + suggested
       action/window), not just a bare class label
-- [ ] Wire classifier into agent as a callable tool
-- [ ] Web dashboard (chat interface + results view)
-- [ ] PWA polish (responsive, installable, offline-friendly where reasonable) —
+- [x] Wire classifier into agent as a callable tool
+- [x] Web dashboard (chat interface + results view)
+- [x] PWA polish (responsive, installable, offline-friendly where reasonable) —
       treat mobile usability as a real requirement, not an afterthought pass
-- [ ] README + demo script/recording
+- [x] README + demo script
+- [ ] Demo recording
 
 ## Tech stack
 

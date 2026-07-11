@@ -245,3 +245,60 @@ loss, accuracy, macro F1, and the confusion matrix exactly.
 > class-weighted loss; I aligned them and verified exact reproduction of every
 > aggregate metric and the confusion matrix. I report the result as a controlled
 > benchmark, not evidence of equivalent field-photo diagnosis.
+
+## Demo-ready vertical slice
+
+### Product decision
+
+The accelerated branch prioritizes one coherent field workflow over a collection
+of disconnected features. A farmer can persist a farm profile, ask multi-turn
+questions, receive real weather and proactive risk context, upload a leaf image,
+and inspect a confidence-aware trained-model result in one responsive field desk.
+
+The service has two orchestration modes. When `ANTHROPIC_API_KEY` is configured,
+the bounded Anthropic tool loop uses the registered crop, weather, and diagnosis
+tools. Without a key, deterministic local orchestration exercises the same data
+sources and produces a reliable interview demo rather than failing at startup.
+
+### Interface decision
+
+The visual direction borrows the supplied AgAnswers reference's immersive field
+photography, editorial serif typography, and restrained agricultural palette,
+without copying its branding or landing-page layout. The first viewport is the
+actual operational product: field identity above a chat workspace and structured
+signal rail. A generated original corn-field photograph is committed as the hero
+asset.
+
+The farm profile and conversation persist in browser storage. The server retains
+active session turns in memory. The PWA caches its shell and last rendered state,
+while live POST requests correctly remain unavailable offline. Browser speech
+recognition is progressive enhancement and is not assumed on unsupported browsers.
+
+### Confidence-aware diagnosis
+
+FastAPI computes all four softmax scores and marks a result uncertain when the
+top score is below 72% or its lead over the runner-up is below 18 percentage
+points. Uncertain responses ask for a close, well-lit retake instead of presenting
+a forced class as fact. Every response states the four-class controlled-image
+scope. These thresholds are product safeguards, not statistically calibrated
+probabilities, and should be revisited with field validation data.
+
+### Verification and remaining risks
+
+- Production TypeScript and Next.js builds pass.
+- Eight TypeScript and ten Python tests pass.
+- Live Open-Meteo geocoding/forecast calls passed through the Next.js proxy.
+- A held-out common-rust image passed through Next.js, FastAPI, the committed
+  checkpoint, and the structured response contract with 99.97% model confidence.
+- Location fallback was added after `Champaign, Illinois` failed provider lookup
+  while `Champaign` succeeded.
+- The in-app browser runtime exposed no browser, so screenshot-based responsive
+  QA was not possible and remains a manual check.
+- `npm audit` reports two moderate findings caused by Next.js nesting vulnerable
+  PostCSS 8.4.31. There are no high or critical findings; npm suggests a breaking
+  and invalid Next 9 downgrade, so the dependency risk is documented rather than
+  disguised by an ineffective root override.
+- Session memory is process-local and farm persistence is browser-local; a real
+  multi-user product would require authenticated durable storage.
+- A second tabular trained model was not added because there was no selected,
+  audited dataset to support an honest yield or irrigation target within scope.

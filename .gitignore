@@ -1,9 +1,9 @@
 node_modules/
 dist/
+.next/
 .DS_Store
 .env
 .env.local
 __pycache__/
 *.py[cod]
 .venv/
-model/artifacts/*.pt

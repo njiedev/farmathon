@@ -1,0 +1,11 @@
+{
+  "name": "Fieldhand Farm Intelligence",
+  "short_name": "Fieldhand",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f1eb",
+  "theme_color": "#17392d",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
