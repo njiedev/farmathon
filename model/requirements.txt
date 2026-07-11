@@ -1,0 +1,5 @@
+datasets>=3.6,<4
+huggingface-hub>=0.24,<2
+Pillow>=11,<12
+torch>=2.13,<2.14
+torchvision>=0.28,<0.29

@@ -88,22 +88,46 @@ Next.js -> TypeScript agent -> diagnosis tool -> FastAPI/PyTorch
 Python owns preprocessing and model inference. TypeScript owns orchestration and
 validates the FastAPI response. The frontend remains presentation-focused.
 
-## Recommended next increment
+## Current model increment
 
-Create only a Python dataset inspection script before training or FastAPI code:
+`model/inspect_dataset.py` now implements the bounded dataset inspection step. It
+loads the PlantVillage color dataset, filters and validates the four corn classes,
+reports per-split counts and sampled image sizes, and rejects `leaf_id` overlap
+between published splits. `model/README.md` documents the approximately 2 GB
+download and the requirement to group future validation splits by physical leaf.
 
-1. Load the PlantVillage color dataset.
-2. Filter the four corn classes.
-3. Print class names and per-split counts.
-4. Verify image dimensions, label mappings, and `leaf_id` availability.
-5. Document the observed data and leakage constraints.
+The helper logic has two passing unit tests. The full inspection ran on July 11,
+2026 and found 3,058 corn images in published train, 794 in published test, and
+256-by-256 sampled dimensions. It also found 216 physical-leaf IDs crossing the
+published train/test boundary. Path inspection confirmed original/copy variants
+of the same leaves in both splits. Do not use the published split for evaluation;
+the next increment must combine corn rows and produce reproducible train,
+validation, and test partitions grouped by `leaf_id`.
 
-Do not add training, serving, diagnosis, and weather in the same increment.
+That grouped split is now implemented and verified. `model/prepare_splits.py`
+creates a seeded, class-stratified 70/15/15 assignment of whole leaf groups and
+writes `model/data/corn_splits.jsonl`. The manifest contains all 3,852 images:
+2,703 train, 569 validation, and 580 test, with every image assigned exactly once,
+all four classes present, and no leaf IDs crossing partitions. Two seed-42 runs
+produced the same SHA-256 hash. This unblocked the PyTorch training/evaluation
+pipeline described below.
+
+The first model is now trained and evaluated. `model/train.py` fine-tunes an
+ImageNet-pretrained MobileNetV3 Small with class-weighted cross-entropy, train-only
+augmentation, validation after every epoch, and lowest-validation-loss checkpoint
+selection. The seed-42 eight-epoch MPS run selected epoch 6 and achieved 98.28%
+test accuracy and 97.68% macro F1. `model/eval.py` independently reproduced the
+same loss, metrics, and confusion matrix from the saved checkpoint. The local
+checkpoint is Git-ignored; `model/artifacts/test_metrics.json` records results.
+The next increment is a minimal FastAPI inference service, followed by the
+TypeScript diagnosis tool. Do not claim these controlled PlantVillage metrics as
+field-photo performance.
 
 ## Verification and repository
 
 - `npm run build` passes.
 - `npm test` passes with eight tests.
+- `python -m unittest discover -s model -p 'test_*.py'` passes with eight tests.
 - Private repository: `https://github.com/njiedev/farmathon`
 - Default branch: `main`
 - Baseline before this document: `fffcb36`
