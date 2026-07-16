@@ -31,7 +31,9 @@ input, proactive risk alerts, responsive layouts, an installable manifest, and
 service-worker shell caching. The generated field photograph and 6.1 MB trained
 checkpoint are committed so the demo is portable.
 
-`npm run build`, eight TypeScript tests, and ten Python tests pass. Live integration
+`npm run build`, nine TypeScript tests, and ten Python tests pass. Runtime tool
+failures are returned to the model as correlated error results, so one failed
+dependency does not discard successful sibling tool outputs. Live integration
 was verified through the Next.js proxy with Open-Meteo and a held-out common-rust
 image. The in-app browser was unavailable, so screenshot-based desktop/mobile QA
 was not completed in this session. `npm audit` reports two moderate findings from

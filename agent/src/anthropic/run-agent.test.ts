@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { z } from "zod";
 
 import type {
   ContentBlock,
@@ -9,6 +10,7 @@ import type {
 import type { MessageClient } from "./message-client.js";
 import { runAgent } from "./run-agent.js";
 import { cropLookupTool } from "../tools/crop-lookup.js";
+import type { Tool } from "../tools/tool.js";
 
 function message(content: ContentBlock[], stopReason: Message["stop_reason"]): Message {
   return {
@@ -90,5 +92,73 @@ test("executes a tool, returns its result to Claude, and returns the final messa
   if (toolResult?.type === "tool_result") {
     assert.equal(toolResult.tool_use_id, "toolu_test");
     assert.match(String(toolResult.content), /"soilPhMin":5.8/);
+  }
+});
+
+test("returns a failed tool result without discarding successful sibling results", async () => {
+  const failingWeatherTool: Tool<{ location: string }, never> = {
+    name: "get_weather",
+    description: "Get weather for a location.",
+    inputSchema: z.object({ location: z.string() }).strict(),
+    async execute() {
+      throw new Error("Forecast failed: 500");
+    }
+  };
+  const toolRequest = message(
+    [
+      {
+        type: "tool_use",
+        id: "toolu_crop",
+        name: "lookup_crop",
+        input: { crop: "corn" },
+        caller: { type: "direct" }
+      },
+      {
+        type: "tool_use",
+        id: "toolu_weather",
+        name: "get_weather",
+        input: { location: "Champaign" },
+        caller: { type: "direct" }
+      }
+    ],
+    "tool_use"
+  );
+  const finalResponse = message(
+    [{
+      type: "text",
+      text: "I found the crop guidance, but the live forecast is unavailable.",
+      citations: null
+    }],
+    "end_turn"
+  );
+  const client = new SequenceMessageClient([toolRequest, finalResponse]);
+
+  const result = await runAgent(client, {
+    model: "test-model",
+    userMessage: "Check my crop and weather.",
+    tools: [cropLookupTool, failingWeatherTool]
+  });
+
+  assert.equal(result, finalResponse);
+  assert.equal(client.requests.length, 2);
+  const resultMessage = client.requests[1]?.messages[2];
+  assert.ok(Array.isArray(resultMessage?.content));
+  const cropResult = resultMessage.content.find(
+    (block) => block.type === "tool_result" && block.tool_use_id === "toolu_crop"
+  );
+  const weatherResult = resultMessage.content.find(
+    (block) => block.type === "tool_result" && block.tool_use_id === "toolu_weather"
+  );
+
+  assert.equal(cropResult?.type, "tool_result");
+  if (cropResult?.type === "tool_result") {
+    assert.equal(cropResult.is_error, undefined);
+    assert.match(String(cropResult.content), /"soilPhMin":5.8/);
+  }
+  assert.equal(weatherResult?.type, "tool_result");
+  if (weatherResult?.type === "tool_result") {
+    assert.equal(weatherResult.is_error, true);
+    assert.match(String(weatherResult.content), /"error":"tool_execution_failed"/);
+    assert.match(String(weatherResult.content), /"message":"Forecast failed: 500"/);
   }
 });

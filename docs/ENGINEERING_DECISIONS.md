@@ -302,3 +302,65 @@ probabilities, and should be revisited with field validation data.
   multi-user product would require authenticated durable storage.
 - A second tabular trained model was not added because there was no selected,
   audited dataset to support an honest yield or irrigation target within scope.
+
+## Recoverable runtime tool failures
+
+### Intended behavior
+
+When the model requests multiple independent tools, one unavailable dependency
+should not erase successful sibling results or force the entire chat request to
+return HTTP 500. The model should receive enough structured information to use
+the successful results and explain which live dependency was unavailable.
+
+### Observed symptom and root cause
+
+`runAgent` executed validated calls with `Promise.all`. Tool validation failures
+were already represented as `tool_result` blocks with `is_error: true`, but an
+exception thrown inside a valid tool rejected its promise. That caused
+`Promise.all` and then the whole agent loop to reject before any results were
+returned to the model.
+
+This was fail-fast behavior at the wrong boundary. A weather-provider failure is
+a tool-level outcome the orchestrator can often recover from; it is not
+necessarily an agent-level failure.
+
+### Decision and implementation
+
+Each validated tool call now catches its own execution exception and resolves to
+a correlated Anthropic `tool_result` block containing:
+
+- The original `tool_use_id`
+- `is_error: true`
+- The `tool_execution_failed` error code
+- The tool name and failure message
+
+Calls still execute concurrently with `Promise.all`, but their promises now
+resolve to either successful or failed result blocks. Agent-level failures such
+as exhausting the tool-round limit still terminate the request.
+
+### Verification evidence
+
+A focused regression test requests crop lookup and weather in the same model
+turn. Crop lookup succeeds while the weather tool throws
+`Forecast failed: 500`. The next model request contains both the successful crop
+output and the weather error under their original tool-use IDs, and the model can
+then return a final response. All nine TypeScript tests pass.
+
+### Remaining limitations
+
+- The failure message is supplied to the model but is not yet stored in a
+  durable trace or associated with retry metadata.
+- The agent does not classify transient versus permanent failures or apply
+  bounded retries.
+- Deterministic no-key orchestration still calls tools directly and retains its
+  existing HTTP failure behavior.
+
+### Interview-ready explanation
+
+> I found that malformed model calls were recoverable, but valid tool calls that
+> encountered provider failures crashed the entire loop. Because calls ran under
+> fail-fast `Promise.all`, one weather outage also discarded a successful crop
+> result. I moved exception handling to the individual tool-call boundary and
+> converted runtime failures into correlated error result blocks. This preserves
+> concurrency, lets the model degrade gracefully with partial information, and
+> keeps true agent-level failures explicit.
